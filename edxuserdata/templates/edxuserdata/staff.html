@@ -1,0 +1,30 @@
+## mako
+
+<%page expression_filter="h"/>
+<%! from django.utils.translation import ugettext as _ %>
+<%inherit file="../main.html" />
+<%block name="pagetitle">${_("Datos Usuarios")}</%block>
+<main id="main" aria-label="Content" tabindex="-1" class="static_pages">
+<h1>Exportar datos por run</h1>
+    <div style="text-align: center">
+        <form method="POST">
+           <input type="hidden" name="csrfmiddlewaretoken" value="${csrf_token}"/>
+            % if context.get('run_malos', UNDEFINED) is not UNDEFINED:
+                <p id="run_malos" style="color:firebrick; margin-bottom: 15px;">Estos Runs están incorrectos: ${run_malos}.</p>
+            % endif
+            % if context.get('no_run', UNDEFINED) is not UNDEFINED:
+                <p id="no_run" style="color:firebrick; margin-bottom: 15px;">Falta agregar run.</p>
+            % endif
+            <div class="form-group" style="margin: 15px 15px;">
+                <label for="runs" style="line-height: 33px; text-align: right; clear: both; margin-right: 15px; font-style: normal; font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif">RUN(s):</label>
+
+                % if context.get('runs', UNDEFINED) is not UNDEFINED:
+                    <textarea style="min-width: 400px; font-style: normal; font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" type="text" name='runs' id="runs" placeholder="12345678-k&#10;12345678-k">${runs}</textarea>                    
+                % else:
+                    <textarea style="min-width: 400px; font-style: normal; font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif" type="text" name='runs' id="runs" placeholder="12345678-k&#10;12345678-k"></textarea>
+                % endif
+            </div>
+            <input type="submit" style="text-shadow: none; border-color:white; background-color: #0075b4; background-image: none; display:block; margin: auto" value="Exportar">
+        </form>
+    </div>
+</main>
