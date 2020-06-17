@@ -15,13 +15,5 @@ class EdxUserDataConfig(AppConfig):
                 PluginURLs.NAMESPACE: "edxuserdata-data",
                 PluginURLs.REGEX: r"^edxuserdata/",
                 PluginURLs.RELATIVE_PATH: "urls",
-            }},
-        PluginSettings.CONFIG: {
-            ProjectType.CMS: {
-                SettingsType.COMMON: {
-                    PluginSettings.RELATIVE_PATH: "settings.common"}},
-            ProjectType.LMS: {
-                SettingsType.COMMON: {
-                    PluginSettings.RELATIVE_PATH: "settings.common"}},
-        },
+            }}
     }
