@@ -11,7 +11,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views.generic.base import View
 from django.http import HttpResponse
-from urllib import urlencode
+from urllib.parse import urlencode
 from itertools import cycle
 from uchileedxlogin.views import EdxLoginStaff
 

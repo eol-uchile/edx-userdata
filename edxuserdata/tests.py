@@ -8,8 +8,7 @@ from django.test import Client
 from django.conf import settings
 from django.contrib.auth.models import Permission, User
 from django.contrib.contenttypes.models import ContentType
-from urlparse import parse_qs
-from openedx.core.lib.tests.tools import assert_true
+from urllib.parse import parse_qs
 from opaque_keys.edx.locator import CourseLocator
 from student.tests.factories import CourseEnrollmentAllowedFactory, UserFactory, CourseEnrollmentFactory
 from xmodule.modulestore.tests.factories import CourseFactory, ItemFactory
@@ -18,7 +17,7 @@ from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
 from uchileedxlogin.models import EdxLoginUser
 import re
 import json
-import urlparse
+import urllib.parse
 # Create your tests here.
 
 
@@ -44,7 +43,7 @@ class TestEdxUserDataStaff(TestCase):
     def test_staff_get(self):
         response = self.client.get(reverse('edxuserdata-data:data'))
         request = response.request
-        self.assertEquals(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(request['PATH_INFO'], '/edxuserdata/data/')
 
     @patch('requests.post')
@@ -88,7 +87,7 @@ class TestEdxUserDataStaff(TestCase):
 
         response = self.client.post(
             reverse('edxuserdata-data:data'), post_data)
-        data = response.content.split("\r\n")
+        data = response.content.decode().split("\r\n")
         self.assertEqual(data[0], "Run;Username;Nombre;Email")
         self.assertEqual(
             data[1],
@@ -135,7 +134,7 @@ class TestEdxUserDataStaff(TestCase):
 
         response = self.client.post(
             reverse('edxuserdata-data:data'), post_data)
-        data = response.content.split("\r\n")
+        data = response.content.decode().split("\r\n")
         self.assertEqual(data[0], "Run;Username;Nombre;Email")
         self.assertEqual(
             data[1],
@@ -182,7 +181,7 @@ class TestEdxUserDataStaff(TestCase):
 
         response = self.client.post(
             reverse('edxuserdata-data:data'), post_data)
-        data = response.content.split("\r\n")
+        data = response.content.decode().split("\r\n")
         self.assertEqual(data[0], "Run;Username;Nombre;Email")
         self.assertEqual(
             data[1],
@@ -229,7 +228,7 @@ class TestEdxUserDataStaff(TestCase):
 
         response = self.client.post(
             reverse('edxuserdata-data:data'), post_data)
-        data = response.content.split("\r\n")
+        data = response.content.decode().split("\r\n")
         self.assertEqual(data[0], "Run;Username;Nombre;Email")
         self.assertEqual(
             data[1],
@@ -273,7 +272,7 @@ class TestEdxUserDataStaff(TestCase):
 
         response = self.client.post(
             reverse('edxuserdata-data:data'), post_data)
-        data = response.content.split("\r\n")
+        data = response.content.decode().split("\r\n")
         self.assertEqual(data[0], "Run;Username;Nombre;Email")
         self.assertEqual(
             data[1],
@@ -346,7 +345,7 @@ class TestEdxUserDataStaff(TestCase):
 
         response = self.client.post(
             reverse('edxuserdata-data:data'), post_data)
-        data = response.content.split("\r\n")
+        data = response.content.decode().split("\r\n")
         self.assertEqual(data[0], "Run;Username;Nombre;Email")
         self.assertEqual(
             data[1],
@@ -361,7 +360,7 @@ class TestEdxUserDataStaff(TestCase):
         }
         response = self.client.post(
             reverse('edxuserdata-data:data'), post_data)
-        assert_true("id=\"no_run\"" in response._container[0])
+        self.assertTrue("id=\"no_run\"" in response._container[0].decode())
 
     def test_staff_post_wrong_run(self):
         post_data = {
@@ -369,4 +368,4 @@ class TestEdxUserDataStaff(TestCase):
         }
         response = self.client.post(
             reverse('edxuserdata-data:data'), post_data)
-        assert_true("id=\"run_malos\"" in response._container[0])
+        self.assertTrue("id=\"run_malos\"" in response._container[0].decode())
