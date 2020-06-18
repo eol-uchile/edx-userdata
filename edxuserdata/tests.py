@@ -41,10 +41,55 @@ class TestEdxUserDataStaff(TestCase):
             user.user_permissions.add(permission)
             self.client.login(username='testuser3', password='12345')
 
+            # user with permision
+            self.client_user = Client()
+            user_wper = UserFactory(
+                username='testuser4',
+                password='12345',
+                email='student4@edx.org')
+            user_wper.user_permissions.add(permission)
+            self.client_user.login(username='testuser4', password='12345')
+
+            # user without permision
+            self.client_no_per = Client()
+            user_nper = UserFactory(
+                username='testuser5',
+                password='12345',
+                email='student5@edx.org')
+            self.client_no_per.login(username='testuser5', password='12345')
+
     def test_staff_get(self):
         response = self.client.get(reverse('edxuserdata-data:data'))
         request = response.request
         self.assertEquals(response.status_code, 200)
+        self.assertEqual(request['PATH_INFO'], '/edxuserdata/data/')
+
+    def test_staff_get_user_anonymous(self):
+        """
+            Test if the user is anonymous
+        """
+        self.client_anonymous = Client()
+        response = self.client_anonymous.get(reverse('edxuserdata-data:data'))
+        request = response.request
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(request['PATH_INFO'], '/edxuserdata/data/')
+
+    def test_staff_get_user_without_permission(self):
+        """
+            Test if the user does not have permission
+        """
+        response = self.client_no_per.get(reverse('edxuserdata-data:data'))
+        request = response.request
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(request['PATH_INFO'], '/edxuserdata/data/')
+
+    def test_staff_get_user_with_permission(self):       
+        """
+            Test if the user have permission
+        """ 
+        response = self.client_user.get(reverse('edxuserdata-data:data'))
+        request = response.request
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(request['PATH_INFO'], '/edxuserdata/data/')
 
     @patch('requests.post')
@@ -370,3 +415,53 @@ class TestEdxUserDataStaff(TestCase):
         response = self.client.post(
             reverse('edxuserdata-data:data'), post_data)
         assert_true("id=\"run_malos\"" in response._container[0])
+
+    @patch('requests.post')
+    @patch('requests.get')
+    def test_staff_post_no_principal_email(self, get, post):
+        """
+            Test if user does not have principal email
+        """
+        post_data = {
+            'runs': '10-8'
+        }
+        data = {"cuentascorp": [{"cuentaCorp": "avilio.perez@ug.uchile.cl",
+                                 "tipoCuenta": "EMAIL",
+                                 "organismoDominio": "ug.uchile.cl"},
+                                {"cuentaCorp": "avilio.perez@uchile.cl",
+                                 "tipoCuenta": "EMAIL",
+                                 "organismoDominio": "uchile.cl"},
+                                {"cuentaCorp": "avilio.perez@u.uchile.cl",
+                                 "tipoCuenta": "EMAIL",
+                                 "organismoDominio": "u.uchile.cl"},
+                                {"cuentaCorp": "avilio.perez",
+                                 "tipoCuenta": "CUENTA PASAPORTE",
+                                 "organismoDominio": "Universidad de Chile"}]}
+
+        get.side_effect = [namedtuple("Request",
+                                      ["status_code",
+                                       "text"])(200,
+                                                json.dumps({"apellidoPaterno": "TESTLASTNAME",
+                                                            "apellidoMaterno": "TESTLASTNAME",
+                                                            "nombres": "TEST NAME",
+                                                            "nombreCompleto": "TEST NAME TESTLASTNAME TESTLASTNAME",
+                                                            "rut": "0000000108"}))]
+        post.side_effect = [namedtuple("Request",
+                                       ["status_code",
+                                        "text"])(200,
+                                                 json.dumps(data)),
+                            namedtuple("Request",
+                                       ["status_code",
+                                        "text"])(200,
+                                                 json.dumps({"emails": [{"rut": "0000000108",
+                                                                         "email": "test@test.test",
+                                                                         "codigoTipoEmail": "1",
+                                                                         "nombreTipoEmail": "ALTERNATIVO"}]}))]
+
+        response = self.client.post(
+            reverse('edxuserdata-data:data'), post_data)
+        data = response.content.split("\r\n")
+        self.assertEqual(data[0], "Run;Username;Nombre;Email")
+        self.assertEqual(
+            data[1],
+            "0000000108;avilio.perez;TEST NAME TESTLASTNAME TESTLASTNAME;No Encontrado") 

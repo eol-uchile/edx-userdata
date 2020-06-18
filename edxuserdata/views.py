@@ -61,8 +61,7 @@ class EdxUserDataStaff(View):
         access = False
         if not request.user.is_anonymous:
             if request.user.has_perm('uchileedxlogin.uchile_instructor_staff'):
-                if request.user.is_staff:
-                    access = True
+                access = True
         return access
 
     def validate_data(self, request, lista_run, context):
@@ -106,7 +105,7 @@ class EdxUserDataStaff(View):
             fullname = {'rut': ''}
             user_data['name'] = 'No Encontrado'
         try:
-            email = EdxLoginStaff().get_user_email(fullname['rut'])
+            email = self.get_user_email(fullname['rut'])
             if email == 'null':
                 user_data['email'] = 'No Encontrado'
             else:
@@ -115,6 +114,27 @@ class EdxUserDataStaff(View):
             user_data['email'] = 'No Encontrado'
 
         return user_data
+
+    def get_user_email(self, rut):
+        """
+        Get the user email
+        """
+        parameters = {
+            'rut': rut
+        }
+        result = requests.post(
+            settings.EDXLOGIN_USER_EMAIL,
+            data=json.dumps(parameters),
+            headers={
+                'content-type': 'application/json'})
+        if result.status_code == 200:
+            data = json.loads(result.text)
+            if 'emails' in data:
+                for mail in data['emails']:
+                    if mail['nombreTipoEmail'] == 'PRINCIPAL':
+                        if mail['email'] is not None:
+                            return mail['email']
+        return 'null'
 
     def export_data(self, lista_run):
         data = []
