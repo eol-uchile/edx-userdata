@@ -83,7 +83,7 @@ class TestEdxUserDataStaff(TestCase):
         self.assertEqual(request['PATH_INFO'], '/edxuserdata/data/')
 
     def test_staff_get_user_with_permission(self):       
-         """
+        """
             Test if the user have permission
         """ 
         response = self.client_user.get(reverse('edxuserdata-data:data'))
