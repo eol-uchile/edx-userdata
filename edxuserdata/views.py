@@ -36,6 +36,9 @@ class EdxUserDataStaff(View):
             raise Http404()
 
     def post(self, request):
+        """
+            Returns a CSV with the data of the entered users
+        """
         if self.validate_user(request):
             lista_run = request.POST.get("runs", "").split('\n')
             # limpieza de los run ingresados
@@ -58,6 +61,9 @@ class EdxUserDataStaff(View):
             raise Http404()
 
     def validate_user(self, request):
+        """
+            Validate if user have permission
+        """
         access = False
         if not request.user.is_anonymous:
             if request.user.has_perm('uchileedxlogin.uchile_instructor_staff'):
@@ -65,6 +71,9 @@ class EdxUserDataStaff(View):
         return access
 
     def validate_data(self, request, lista_run, context):
+        """
+            Validate if the entered data is valid
+        """
         run_malos = ""
         # validacion de los run
         for run in lista_run:
@@ -92,6 +101,9 @@ class EdxUserDataStaff(View):
         return context
 
     def get_userdata(self, run):
+        """
+            Get username, fullname and email of the 'run'
+        """
         user_data = {}
         try:
             username = EdxLoginStaff().get_username(run)
@@ -137,6 +149,9 @@ class EdxUserDataStaff(View):
         return 'null'
 
     def export_data(self, lista_run):
+        """
+            Create the CSV
+        """
         data = []
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="users.csv"'
