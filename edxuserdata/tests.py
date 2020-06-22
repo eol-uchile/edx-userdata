@@ -136,10 +136,10 @@ class TestEdxUserDataStaff(TestCase):
         response = self.client.post(
             reverse('edxuserdata-data:data'), post_data)
         data = response.content.decode().split("\r\n")
-        self.assertEqual(data[0], "Run;Username;Nombre;Email")
+        self.assertEqual(data[0], "Run;Username;Apellido Paterno;Apellido Materno;Nombre;Email")
         self.assertEqual(
             data[1],
-            "0000000108;avilio.perez;TEST NAME TESTLASTNAME TESTLASTNAME;test@test.test")
+            "0000000108;avilio.perez;TESTLASTNAME;TESTLASTNAME;TEST NAME;test@test.test")
 
     @patch('requests.post')
     @patch('requests.get')
@@ -186,10 +186,10 @@ class TestEdxUserDataStaff(TestCase):
         response = self.client.post(
             reverse('edxuserdata-data:data'), post_data)
         data = response.content.decode().split("\r\n")
-        self.assertEqual(data[0], "Run;Username;Nombre;Email")
+        self.assertEqual(data[0], "Run;Username;Apellido Paterno;Apellido Materno;Nombre;Email")
         self.assertEqual(
             data[1],
-            "0000000108;No Encontrado;No Encontrado;No Encontrado")
+            "0000000108;No Encontrado;No Encontrado;No Encontrado;No Encontrado;No Encontrado")
 
     @patch('requests.post')
     @patch('requests.get')
@@ -236,10 +236,10 @@ class TestEdxUserDataStaff(TestCase):
         response = self.client.post(
             reverse('edxuserdata-data:data'), post_data)
         data = response.content.decode().split("\r\n")
-        self.assertEqual(data[0], "Run;Username;Nombre;Email")
+        self.assertEqual(data[0], "Run;Username;Apellido Paterno;Apellido Materno;Nombre;Email")
         self.assertEqual(
             data[1],
-            "0000000108;avilio.perez;No Encontrado;No Encontrado")
+            "0000000108;avilio.perez;No Encontrado;No Encontrado;No Encontrado;No Encontrado")
 
     @patch('requests.post')
     @patch('requests.get')
@@ -286,10 +286,10 @@ class TestEdxUserDataStaff(TestCase):
         response = self.client.post(
             reverse('edxuserdata-data:data'), post_data)
         data = response.content.decode().split("\r\n")
-        self.assertEqual(data[0], "Run;Username;Nombre;Email")
+        self.assertEqual(data[0], "Run;Username;Apellido Paterno;Apellido Materno;Nombre;Email")
         self.assertEqual(
             data[1],
-            "0000000108;avilio.perez;TEST NAME TESTLASTNAME TESTLASTNAME;No Encontrado")
+            "0000000108;avilio.perez;TESTLASTNAME;TESTLASTNAME;TEST NAME;No Encontrado")
 
     @patch('requests.post')
     @patch('requests.get')
@@ -333,10 +333,10 @@ class TestEdxUserDataStaff(TestCase):
         response = self.client.post(
             reverse('edxuserdata-data:data'), post_data)
         data = response.content.decode().split("\r\n")
-        self.assertEqual(data[0], "Run;Username;Nombre;Email")
+        self.assertEqual(data[0], "Run;Username;Apellido Paterno;Apellido Materno;Nombre;Email")
         self.assertEqual(
             data[1],
-            "0000000108;avilio.perez;TEST NAME TESTLASTNAME TESTLASTNAME;No Encontrado")
+            "0000000108;avilio.perez;TESTLASTNAME;TESTLASTNAME;TEST NAME;No Encontrado")
 
     @patch('requests.post')
     @patch('requests.get')
@@ -378,9 +378,9 @@ class TestEdxUserDataStaff(TestCase):
                            namedtuple("Request",
                                       ["status_code",
                                        "text"])(200,
-                                                json.dumps({"apellidoPaterno": "TESTLASTNAME",
-                                                            "apellidoMaterno": "TESTLASTNAME",
-                                                            "nombres": "TEST NAME",
+                                                json.dumps({"apellidoPaterno": "TESTLASTNAME2",
+                                                            "apellidoMaterno": "TESTLASTNAME2",
+                                                            "nombres": "TEST2 NAME2",
                                                             "nombreCompleto": "TEST2 NAME2 TESTLASTNAME2 TESTLASTNAME2",
                                                             "rut": "009472337K"}))]
         post.side_effect = [namedtuple("Request",
@@ -409,13 +409,13 @@ class TestEdxUserDataStaff(TestCase):
         response = self.client.post(
             reverse('edxuserdata-data:data'), post_data)
         data = response.content.decode().split("\r\n")
-        self.assertEqual(data[0], "Run;Username;Nombre;Email")
+        self.assertEqual(data[0], "Run;Username;Apellido Paterno;Apellido Materno;Nombre;Email")
         self.assertEqual(
             data[1],
-            "0000000108;avilio.perez;TEST NAME TESTLASTNAME TESTLASTNAME;test@test.test")
+            "0000000108;avilio.perez;TESTLASTNAME;TESTLASTNAME;TEST NAME;test@test.test")
         self.assertEqual(
             data[2],
-            "009472337K;test.test;TEST2 NAME2 TESTLASTNAME2 TESTLASTNAME2;test2@test.test")
+            "009472337K;test.test;TESTLASTNAME2;TESTLASTNAME2;TEST2 NAME2;test2@test.test")
 
     def test_staff_post_no_run(self):
         """
@@ -481,7 +481,7 @@ class TestEdxUserDataStaff(TestCase):
         response = self.client.post(
             reverse('edxuserdata-data:data'), post_data)
         data = response.content.decode().split("\r\n")
-        self.assertEqual(data[0], "Run;Username;Nombre;Email")
+        self.assertEqual(data[0], "Run;Username;Apellido Paterno;Apellido Materno;Nombre;Email")
         self.assertEqual(
             data[1],
-            "0000000108;avilio.perez;TEST NAME TESTLASTNAME TESTLASTNAME;No Encontrado")
+            "0000000108;avilio.perez;TESTLASTNAME;TESTLASTNAME;TEST NAME;No Encontrado")
