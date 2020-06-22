@@ -100,9 +100,13 @@ class EdxUserDataStaff(View):
             user_data['username'] = 'No Encontrado'
         try:
             fullname = EdxLoginStaff().get_user_data(user_data['username'])
-            user_data['name'] = fullname['nombreCompleto']
+            user_data['lastname'] = fullname['apellidoPaterno']
+            user_data['lastname2'] = fullname['apellidoMaterno']
+            user_data['name'] = fullname['nombres']
         except Exception:
             fullname = {'rut': ''}
+            user_data['lastname'] = 'No Encontrado'
+            user_data['lastname2'] = 'No Encontrado'
             user_data['name'] = 'No Encontrado'
         try:
             email = self.get_user_email(fullname['rut'])
@@ -147,7 +151,7 @@ class EdxUserDataStaff(View):
             dialect='excel',
             encoding='utf-8')
         data.append([])
-        data[0].extend(['Run', 'Username', 'Nombre', 'Email'])
+        data[0].extend(['Run', 'Username', 'Apellido Paterno', 'Apellido Materno', 'Nombre', 'Email'])
         i = 1
         for run in lista_run:
             while len(run) < 10 and 'P' != run[0]:
@@ -156,6 +160,8 @@ class EdxUserDataStaff(View):
             user_data = self.get_userdata(run)
             data[i].extend([run,
                             user_data['username'],
+                            user_data['lastname'],
+                            user_data['lastname2'],
                             user_data['name'],
                             user_data['email']])
             i += 1
