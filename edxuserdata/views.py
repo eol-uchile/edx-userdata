@@ -81,6 +81,9 @@ class EdxUserDataStaff(View):
                 if run[0] == 'P':
                     if 5 > len(run[1:]) or len(run[1:]) > 20:
                         run_malos += run + " - "
+                elif run[0:2] == 'CG':
+                    if len(run) != 10:
+                        run_malos += run + " - "
                 else:
                     if not EdxLoginStaff().validarRut(run):
                         run_malos += run + " - "
@@ -169,7 +172,7 @@ class EdxUserDataStaff(View):
         data[0].extend(['Run', 'Username', 'Apellido Paterno', 'Apellido Materno', 'Nombre', 'Email'])
         i = 1
         for run in lista_run:
-            while len(run) < 10 and 'P' != run[0]:
+            while len(run) < 10 and 'P' != run[0] and 'CG' != run[0:2]:
                 run = "0" + run
             data.append([])
             user_data = self.get_userdata(run)

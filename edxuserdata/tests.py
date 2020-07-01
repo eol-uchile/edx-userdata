@@ -436,6 +436,22 @@ class TestEdxUserDataStaff(TestCase):
             reverse('edxuserdata-data:data'), post_data)
         self.assertTrue("id=\"run_malos\"" in response._container[0].decode())
 
+    def test_staff_post_wrong_passport(self):
+        post_data = {
+            'runs': 'P3456'
+        }
+        response = self.client.post(
+            reverse('edxuserdata-data:data'), post_data)
+        self.assertTrue("id=\"run_malos\"" in response._container[0].decode())
+
+    def test_staff_post_wrong_CG(self):
+        post_data = {
+            'runs': 'CG123456'
+        }
+        response = self.client.post(
+            reverse('edxuserdata-data:data'), post_data)
+        self.assertTrue("id=\"run_malos\"" in response._container[0].decode())
+
     @patch('requests.post')
     @patch('requests.get')
     def test_staff_post_no_principal_email(self, get, post):
@@ -485,3 +501,103 @@ class TestEdxUserDataStaff(TestCase):
         self.assertEqual(
             data[1],
             "0000000108;avilio.perez;TESTLASTNAME;TESTLASTNAME;TEST NAME;No Encontrado")
+
+    @patch('requests.post')
+    @patch('requests.get')
+    def test_staff_post_passport(self, get, post):
+        """
+            Test normal process with passport
+        """
+        post_data = {
+            'runs': 'p123456'
+        }
+        data = {"cuentascorp": [{"cuentaCorp": "avilio.perez@ug.uchile.cl",
+                                 "tipoCuenta": "EMAIL",
+                                 "organismoDominio": "ug.uchile.cl"},
+                                {"cuentaCorp": "avilio.perez@uchile.cl",
+                                 "tipoCuenta": "EMAIL",
+                                 "organismoDominio": "uchile.cl"},
+                                {"cuentaCorp": "avilio.perez@u.uchile.cl",
+                                 "tipoCuenta": "EMAIL",
+                                 "organismoDominio": "u.uchile.cl"},
+                                {"cuentaCorp": "avilio.perez",
+                                 "tipoCuenta": "CUENTA PASAPORTE",
+                                 "organismoDominio": "Universidad de Chile"}]}
+
+        get.side_effect = [namedtuple("Request",
+                                      ["status_code",
+                                       "text"])(200,
+                                                json.dumps({"apellidoPaterno": "TESTLASTNAME",
+                                                            "apellidoMaterno": "TESTLASTNAME",
+                                                            "nombres": "TEST NAME",
+                                                            "nombreCompleto": "TEST NAME TESTLASTNAME TESTLASTNAME",
+                                                            "rut": "P123456"}))]
+        post.side_effect = [namedtuple("Request",
+                                       ["status_code",
+                                        "text"])(200,
+                                                 json.dumps(data)),
+                            namedtuple("Request",
+                                       ["status_code",
+                                        "text"])(200,
+                                                 json.dumps({"emails": [{"rut": "P123456",
+                                                                         "email": "test@test.test",
+                                                                         "codigoTipoEmail": "1",
+                                                                         "nombreTipoEmail": "PRINCIPAL"}]}))]
+
+        response = self.client.post(
+            reverse('edxuserdata-data:data'), post_data)
+        data = response.content.decode().split("\r\n")
+        self.assertEqual(data[0], "Run;Username;Apellido Paterno;Apellido Materno;Nombre;Email")
+        self.assertEqual(
+            data[1],
+            "P123456;avilio.perez;TESTLASTNAME;TESTLASTNAME;TEST NAME;test@test.test")
+
+    @patch('requests.post')
+    @patch('requests.get')
+    def test_staff_post_CG(self, get, post):
+        """
+            Test normal process with CG
+        """
+        post_data = {
+            'runs': 'CG00123456'
+        }
+        data = {"cuentascorp": [{"cuentaCorp": "avilio.perez@ug.uchile.cl",
+                                 "tipoCuenta": "EMAIL",
+                                 "organismoDominio": "ug.uchile.cl"},
+                                {"cuentaCorp": "avilio.perez@uchile.cl",
+                                 "tipoCuenta": "EMAIL",
+                                 "organismoDominio": "uchile.cl"},
+                                {"cuentaCorp": "avilio.perez@u.uchile.cl",
+                                 "tipoCuenta": "EMAIL",
+                                 "organismoDominio": "u.uchile.cl"},
+                                {"cuentaCorp": "avilio.perez",
+                                 "tipoCuenta": "CUENTA PASAPORTE",
+                                 "organismoDominio": "Universidad de Chile"}]}
+
+        get.side_effect = [namedtuple("Request",
+                                      ["status_code",
+                                       "text"])(200,
+                                                json.dumps({"apellidoPaterno": "TESTLASTNAME",
+                                                            "apellidoMaterno": "TESTLASTNAME",
+                                                            "nombres": "TEST NAME",
+                                                            "nombreCompleto": "TEST NAME TESTLASTNAME TESTLASTNAME",
+                                                            "rut": "CG00123456"}))]
+        post.side_effect = [namedtuple("Request",
+                                       ["status_code",
+                                        "text"])(200,
+                                                 json.dumps(data)),
+                            namedtuple("Request",
+                                       ["status_code",
+                                        "text"])(200,
+                                                 json.dumps({"emails": [{"rut": "CG00123456",
+                                                                         "email": "test@test.test",
+                                                                         "codigoTipoEmail": "1",
+                                                                         "nombreTipoEmail": "PRINCIPAL"}]}))]
+
+        response = self.client.post(
+            reverse('edxuserdata-data:data'), post_data)
+        data = response.content.decode().split("\r\n")
+        self.assertEqual(data[0], "Run;Username;Apellido Paterno;Apellido Materno;Nombre;Email")
+        self.assertEqual(
+            data[1],
+            "CG00123456;avilio.perez;TESTLASTNAME;TESTLASTNAME;TEST NAME;test@test.test")
