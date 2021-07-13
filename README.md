@@ -1,6 +1,6 @@
 # Eol User Data
 
-![https://github.com/eol-uchile/edx-userdata/actions](https://github.com/eol-uchile/edx-userdata/workflows/Python%20application/badge.svg)
+![https://github.com/eol-uchile/edx-userdata/actions](https://github.com/eol-uchile/edx-userdata/workflows/Python%20application/badge.svg)![Coverage Status](https://github.com/eol-uchile/edx-userdata/blob/master/coverage-badge.svg)
 
 Return CSV with user data from api
 
