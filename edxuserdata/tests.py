@@ -136,48 +136,24 @@ class TestEdxUserDataStaff(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(request['PATH_INFO'], '/edxuserdata/data/')
 
-    @patch('requests.post')
     @patch('requests.get')
-    def test_staff_post(self, get, post):
+    def test_staff_post(self, get):
         """
             Test normal process
         """
         post_data = {
             'runs': '10-8'
         }
-        data = {"cuentascorp": [{"cuentaCorp": "avilio.perez@ug.uchile.cl",
-                                 "tipoCuenta": "EMAIL",
-                                 "organismoDominio": "ug.uchile.cl"},
-                                {"cuentaCorp": "avilio.perez@uchile.cl",
-                                 "tipoCuenta": "EMAIL",
-                                 "organismoDominio": "uchile.cl"},
-                                {"cuentaCorp": "avilio.perez@u.uchile.cl",
-                                 "tipoCuenta": "EMAIL",
-                                 "organismoDominio": "u.uchile.cl"},
-                                {"cuentaCorp": "avilio.perez",
-                                 "tipoCuenta": "CUENTA PASAPORTE",
-                                 "organismoDominio": "Universidad de Chile"}]}
-
         get.side_effect = [namedtuple("Request",
                                       ["status_code",
                                        "text"])(200,
-                                                json.dumps({"apellidoPaterno": "TESTLASTNAME",
-                                                            "apellidoMaterno": "TESTLASTNAME",
+                                                json.dumps({'data':{'getRowsPersona':{'status_code':200,'persona':[
+                                                            {"paterno": "TESTLASTNAME",
+                                                            "materno": "TESTLASTNAME",
+                                                            'pasaporte': [{'usuario':'avilio.perez'}],
                                                             "nombres": "TEST NAME",
-                                                            "nombreCompleto": "TEST NAME TESTLASTNAME TESTLASTNAME",
-                                                            "rut": "0000000108"}))]
-        post.side_effect = [namedtuple("Request",
-                                       ["status_code",
-                                        "text"])(200,
-                                                 json.dumps(data)),
-                            namedtuple("Request",
-                                       ["status_code",
-                                        "text"])(200,
-                                                 json.dumps({"emails": [{"rut": "0000000108",
-                                                                         "email": "test@test.test",
-                                                                         "codigoTipoEmail": "1",
-                                                                         "nombreTipoEmail": "PRINCIPAL"}]}))]
-
+                                                            'email': [{'email': 'test@test.test'}],
+                                                            "indiv_id": "0000000108"}]}}}))]
         response = self.client.post(
             reverse('edxuserdata-data:data'), post_data)
         data = response.content.decode().split("\r\n")
@@ -186,47 +162,24 @@ class TestEdxUserDataStaff(TestCase):
             data[1],
             "0000000108;avilio.perez;TESTLASTNAME;TESTLASTNAME;TEST NAME;test@test.test")
 
-    @patch('requests.post')
     @patch('requests.get')
-    def test_staff_post_fail_username(self, get, post):
+    def test_staff_post_fail_data(self, get):
         """
-            Test if get username fail
+            Test if get data fail
         """
         post_data = {
             'runs': '10-8'
         }
-        data = {"cuentascorp": [{"cuentaCorp": "avilio.perez@ug.uchile.cl",
-                                 "tipoCuenta": "EMAIL",
-                                 "organismoDominio": "ug.uchile.cl"},
-                                {"cuentaCorp": "avilio.perez@uchile.cl",
-                                 "tipoCuenta": "EMAIL",
-                                 "organismoDominio": "uchile.cl"},
-                                {"cuentaCorp": "avilio.perez@u.uchile.cl",
-                                 "tipoCuenta": "EMAIL",
-                                 "organismoDominio": "u.uchile.cl"},
-                                {"cuentaCorp": "avilio.perez",
-                                 "tipoCuenta": "CUENTA PASAPORTE",
-                                 "organismoDominio": "Universidad de Chile"}]}
-
         get.side_effect = [namedtuple("Request",
                                       ["status_code",
-                                       "text"])(404,
-                                                json.dumps({"apellidoPaterno": "TESTLASTNAME",
-                                                            "apellidoMaterno": "TESTLASTNAME",
+                                       "text"])(400,
+                                                json.dumps({'data':{'getRowsPersona':{'status_code':200,'persona':[
+                                                            {"paterno": "TESTLASTNAME",
+                                                            "materno": "TESTLASTNAME",
+                                                            'pasaporte': [{'usuario':'avilio.perez'}],
                                                             "nombres": "TEST NAME",
-                                                            "nombreCompleto": "TEST NAME TESTLASTNAME TESTLASTNAME",
-                                                            "rut": "0000000108"}))]
-        post.side_effect = [namedtuple("Request",
-                                       ["status_code",
-                                        "text"])(404,
-                                                 json.dumps(data)),
-                            namedtuple("Request",
-                                       ["status_code",
-                                        "text"])(404,
-                                                 json.dumps({"emails": [{"rut": "0000000108",
-                                                                         "email": "test@test.test",
-                                                                         "codigoTipoEmail": "1",
-                                                                         "nombreTipoEmail": "PRINCIPAL"}]}))]
+                                                            'email': [{'email': 'test@test.test'}],
+                                                            "indiv_id": "0000000108"}]}}}))]
 
         response = self.client.post(
             reverse('edxuserdata-data:data'), post_data)
@@ -236,221 +189,34 @@ class TestEdxUserDataStaff(TestCase):
             data[1],
             "0000000108;No Encontrado;No Encontrado;No Encontrado;No Encontrado;No Encontrado")
 
-    @patch('requests.post')
     @patch('requests.get')
-    def test_staff_post_fail_fullname(self, get, post):
-        """
-            Test if get fullname fail
-        """
-        post_data = {
-            'runs': '10-8'
-        }
-        data = {"cuentascorp": [{"cuentaCorp": "avilio.perez@ug.uchile.cl",
-                                 "tipoCuenta": "EMAIL",
-                                 "organismoDominio": "ug.uchile.cl"},
-                                {"cuentaCorp": "avilio.perez@uchile.cl",
-                                 "tipoCuenta": "EMAIL",
-                                 "organismoDominio": "uchile.cl"},
-                                {"cuentaCorp": "avilio.perez@u.uchile.cl",
-                                 "tipoCuenta": "EMAIL",
-                                 "organismoDominio": "u.uchile.cl"},
-                                {"cuentaCorp": "avilio.perez",
-                                 "tipoCuenta": "CUENTA PASAPORTE",
-                                 "organismoDominio": "Universidad de Chile"}]}
-
-        get.side_effect = [namedtuple("Request",
-                                      ["status_code",
-                                       "text"])(404,
-                                                json.dumps({"apellidoPaterno": "TESTLASTNAME",
-                                                            "apellidoMaterno": "TESTLASTNAME",
-                                                            "nombres": "TEST NAME",
-                                                            "nombreCompleto": "TEST NAME TESTLASTNAME TESTLASTNAME",
-                                                            "rut": "0000000108"}))]
-        post.side_effect = [namedtuple("Request",
-                                       ["status_code",
-                                        "text"])(200,
-                                                 json.dumps(data)),
-                            namedtuple("Request",
-                                       ["status_code",
-                                        "text"])(404,
-                                                 json.dumps({"emails": [{"rut": "0000000108",
-                                                                         "email": "test@test.test",
-                                                                         "codigoTipoEmail": "1",
-                                                                         "nombreTipoEmail": "PRINCIPAL"}]}))]
-
-        response = self.client.post(
-            reverse('edxuserdata-data:data'), post_data)
-        data = response.content.decode().split("\r\n")
-        self.assertEqual(data[0], "Run;Username;Apellido Paterno;Apellido Materno;Nombre;Email")
-        self.assertEqual(
-            data[1],
-            "0000000108;avilio.perez;No Encontrado;No Encontrado;No Encontrado;No Encontrado")
-
-    @patch('requests.post')
-    @patch('requests.get')
-    def test_staff_post_fail_email(self, get, post):
-        """
-            Test if get email fail
-        """
-        post_data = {
-            'runs': '10-8'
-        }
-        data = {"cuentascorp": [{"cuentaCorp": "avilio.perez@ug.uchile.cl",
-                                 "tipoCuenta": "EMAIL",
-                                 "organismoDominio": "ug.uchile.cl"},
-                                {"cuentaCorp": "avilio.perez@uchile.cl",
-                                 "tipoCuenta": "EMAIL",
-                                 "organismoDominio": "uchile.cl"},
-                                {"cuentaCorp": "avilio.perez@u.uchile.cl",
-                                 "tipoCuenta": "EMAIL",
-                                 "organismoDominio": "u.uchile.cl"},
-                                {"cuentaCorp": "avilio.perez",
-                                 "tipoCuenta": "CUENTA PASAPORTE",
-                                 "organismoDominio": "Universidad de Chile"}]}
-
-        get.side_effect = [namedtuple("Request",
-                                      ["status_code",
-                                       "text"])(200,
-                                                json.dumps({"apellidoPaterno": "TESTLASTNAME",
-                                                            "apellidoMaterno": "TESTLASTNAME",
-                                                            "nombres": "TEST NAME",
-                                                            "nombreCompleto": "TEST NAME TESTLASTNAME TESTLASTNAME",
-                                                            "rut": "0000000108"}))]
-        post.side_effect = [namedtuple("Request",
-                                       ["status_code",
-                                        "text"])(200,
-                                                 json.dumps(data)),
-                            namedtuple("Request",
-                                       ["status_code",
-                                        "text"])(404,
-                                                 json.dumps({"emails": [{"rut": "0000000108",
-                                                                         "email": "test@test.test",
-                                                                         "codigoTipoEmail": "1",
-                                                                         "nombreTipoEmail": "PRINCIPAL"}]}))]
-
-        response = self.client.post(
-            reverse('edxuserdata-data:data'), post_data)
-        data = response.content.decode().split("\r\n")
-        self.assertEqual(data[0], "Run;Username;Apellido Paterno;Apellido Materno;Nombre;Email")
-        self.assertEqual(
-            data[1],
-            "0000000108;avilio.perez;TESTLASTNAME;TESTLASTNAME;TEST NAME;No Encontrado")
-
-    @patch('requests.post')
-    @patch('requests.get')
-    def test_staff_post_null_email(self, get, post):
-        """
-            Test if user does not have email
-        """
-        post_data = {
-            'runs': '10-8'
-        }
-        data = {"cuentascorp": [{"cuentaCorp": "avilio.perez@ug.uchile.cl",
-                                 "tipoCuenta": "EMAIL",
-                                 "organismoDominio": "ug.uchile.cl"},
-                                {"cuentaCorp": "avilio.perez@uchile.cl",
-                                 "tipoCuenta": "EMAIL",
-                                 "organismoDominio": "uchile.cl"},
-                                {"cuentaCorp": "avilio.perez@u.uchile.cl",
-                                 "tipoCuenta": "EMAIL",
-                                 "organismoDominio": "u.uchile.cl"},
-                                {"cuentaCorp": "avilio.perez",
-                                 "tipoCuenta": "CUENTA PASAPORTE",
-                                 "organismoDominio": "Universidad de Chile"}]}
-
-        get.side_effect = [namedtuple("Request",
-                                      ["status_code",
-                                       "text"])(200,
-                                                json.dumps({"apellidoPaterno": "TESTLASTNAME",
-                                                            "apellidoMaterno": "TESTLASTNAME",
-                                                            "nombres": "TEST NAME",
-                                                            "nombreCompleto": "TEST NAME TESTLASTNAME TESTLASTNAME",
-                                                            "rut": "0000000108"}))]
-        post.side_effect = [namedtuple("Request",
-                                       ["status_code",
-                                        "text"])(200,
-                                                 json.dumps(data)),
-                            namedtuple("Request",
-                                       ["status_code",
-                                        "text"])(200,
-                                                 json.dumps({"emails": [{}]}))]
-
-        response = self.client.post(
-            reverse('edxuserdata-data:data'), post_data)
-        data = response.content.decode().split("\r\n")
-
-        self.assertEqual(data[0], "Run;Username;Apellido Paterno;Apellido Materno;Nombre;Email")
-        self.assertEqual(
-            data[1],
-            "0000000108;avilio.perez;TESTLASTNAME;TESTLASTNAME;TEST NAME;No Encontrado")
-
-    @patch('requests.post')
-    @patch('requests.get')
-    def test_staff_post_multiple_run(self, get, post):
+    def test_staff_post_multiple_run(self, get):
         """
             Test normal process with multiple 'r.u.n'
         """
         post_data = {
             'runs': '10-8\n9472337K'
         }
-        user_data_1 = {"cuentascorp": [{"cuentaCorp": "avilio.perez@ug.uchile.cl",
-                                        "tipoCuenta": "EMAIL",
-                                        "organismoDominio": "ug.uchile.cl"},
-                                       {"cuentaCorp": "avilio.perez@uchile.cl",
-                                        "tipoCuenta": "EMAIL",
-                                        "organismoDominio": "uchile.cl"},
-                                       {"cuentaCorp": "avilio.perez@u.uchile.cl",
-                                        "tipoCuenta": "EMAIL",
-                                        "organismoDominio": "u.uchile.cl"},
-                                       {"cuentaCorp": "avilio.perez",
-                                        "tipoCuenta": "CUENTA PASAPORTE",
-                                        "organismoDominio": "Universidad de Chile"}]}
-
-        user_data_2 = {
-            "cuentascorp": [
-                {
-                    "cuentaCorp": "test.test",
-                    "tipoCuenta": "CUENTA PASAPORTE",
-                    "organismoDominio": "Universidad de Chile"}]}
-
         get.side_effect = [namedtuple("Request",
                                       ["status_code",
                                        "text"])(200,
-                                                json.dumps({"apellidoPaterno": "TESTLASTNAME",
-                                                            "apellidoMaterno": "TESTLASTNAME",
+                                                json.dumps({'data':{'getRowsPersona':{'status_code':200,'persona':[
+                                                            {"paterno": "TESTLASTNAME",
+                                                            "materno": "TESTLASTNAME",
+                                                            'pasaporte': [{'usuario':'avilio.perez'}],
                                                             "nombres": "TEST NAME",
-                                                            "nombreCompleto": "TEST NAME TESTLASTNAME TESTLASTNAME",
-                                                            "rut": "0000000108"})),
-                           namedtuple("Request",
+                                                            'email': [{'email': 'test@test.test'}],
+                                                            "indiv_id": "0000000108"}]}}})),
+                    namedtuple("Request",
                                       ["status_code",
                                        "text"])(200,
-                                                json.dumps({"apellidoPaterno": "TESTLASTNAME2",
-                                                            "apellidoMaterno": "TESTLASTNAME2",
+                                                json.dumps({'data':{'getRowsPersona':{'status_code':200,'persona':[
+                                                            {"paterno": "TESTLASTNAME2",
+                                                            "materno": "TESTLASTNAME2",
+                                                            'pasaporte': [{'usuario':'test.test'}],
                                                             "nombres": "TEST2 NAME2",
-                                                            "nombreCompleto": "TEST2 NAME2 TESTLASTNAME2 TESTLASTNAME2",
-                                                            "rut": "009472337K"}))]
-        post.side_effect = [namedtuple("Request",
-                                       ["status_code",
-                                        "text"])(200,
-                                                 json.dumps(user_data_1)),
-                            namedtuple("Request",
-                                       ["status_code",
-                                        "text"])(200,
-                                                 json.dumps({"emails": [{"rut": "0000000108",
-                                                                         "email": "test@test.test",
-                                                                         "codigoTipoEmail": "1",
-                                                                         "nombreTipoEmail": "PRINCIPAL"}]})),
-                            namedtuple("Request",
-                                       ["status_code",
-                                        "text"])(200,
-                                                 json.dumps(user_data_2)),
-                            namedtuple("Request",
-                                       ["status_code",
-                                        "text"])(200,
-                                                 json.dumps({"emails": [{"rut": "009472337K",
-                                                                         "email": "test2@test.test",
-                                                                         "codigoTipoEmail": "1",
-                                                                         "nombreTipoEmail": "PRINCIPAL"}]}))]
+                                                            'email': [{'email': 'test2@test.test'}],
+                                                            "indiv_id": "009472337K"}]}}}))]
 
         response = self.client.post(
             reverse('edxuserdata-data:data'), post_data)
@@ -499,98 +265,24 @@ class TestEdxUserDataStaff(TestCase):
             reverse('edxuserdata-data:data'), post_data)
         self.assertTrue("id=\"run_malos\"" in response._container[0].decode())
 
-    @patch('requests.post')
     @patch('requests.get')
-    def test_staff_post_no_principal_email(self, get, post):
-        """
-            Test if user does not have principal email
-        """
-        post_data = {
-            'runs': '10-8'
-        }
-        data = {"cuentascorp": [{"cuentaCorp": "avilio.perez@ug.uchile.cl",
-                                 "tipoCuenta": "EMAIL",
-                                 "organismoDominio": "ug.uchile.cl"},
-                                {"cuentaCorp": "avilio.perez@uchile.cl",
-                                 "tipoCuenta": "EMAIL",
-                                 "organismoDominio": "uchile.cl"},
-                                {"cuentaCorp": "avilio.perez@u.uchile.cl",
-                                 "tipoCuenta": "EMAIL",
-                                 "organismoDominio": "u.uchile.cl"},
-                                {"cuentaCorp": "avilio.perez",
-                                 "tipoCuenta": "CUENTA PASAPORTE",
-                                 "organismoDominio": "Universidad de Chile"}]}
-
-        get.side_effect = [namedtuple("Request",
-                                      ["status_code",
-                                       "text"])(200,
-                                                json.dumps({"apellidoPaterno": "TESTLASTNAME",
-                                                            "apellidoMaterno": "TESTLASTNAME",
-                                                            "nombres": "TEST NAME",
-                                                            "nombreCompleto": "TEST NAME TESTLASTNAME TESTLASTNAME",
-                                                            "rut": "0000000108"}))]
-        post.side_effect = [namedtuple("Request",
-                                       ["status_code",
-                                        "text"])(200,
-                                                 json.dumps(data)),
-                            namedtuple("Request",
-                                       ["status_code",
-                                        "text"])(200,
-                                                 json.dumps({"emails": [{"rut": "0000000108",
-                                                                         "email": "test@test.test",
-                                                                         "codigoTipoEmail": "1",
-                                                                         "nombreTipoEmail": "ALTERNATIVO"}]}))]
-
-        response = self.client.post(
-            reverse('edxuserdata-data:data'), post_data)
-        data = response.content.decode().split("\r\n")
-        self.assertEqual(data[0], "Run;Username;Apellido Paterno;Apellido Materno;Nombre;Email")
-        self.assertEqual(
-            data[1],
-            "0000000108;avilio.perez;TESTLASTNAME;TESTLASTNAME;TEST NAME;No Encontrado")
-
-    @patch('requests.post')
-    @patch('requests.get')
-    def test_staff_post_passport(self, get, post):
+    def test_staff_post_passport(self, get):
         """
             Test normal process with passport
         """
         post_data = {
             'runs': 'p123456'
         }
-        data = {"cuentascorp": [{"cuentaCorp": "avilio.perez@ug.uchile.cl",
-                                 "tipoCuenta": "EMAIL",
-                                 "organismoDominio": "ug.uchile.cl"},
-                                {"cuentaCorp": "avilio.perez@uchile.cl",
-                                 "tipoCuenta": "EMAIL",
-                                 "organismoDominio": "uchile.cl"},
-                                {"cuentaCorp": "avilio.perez@u.uchile.cl",
-                                 "tipoCuenta": "EMAIL",
-                                 "organismoDominio": "u.uchile.cl"},
-                                {"cuentaCorp": "avilio.perez",
-                                 "tipoCuenta": "CUENTA PASAPORTE",
-                                 "organismoDominio": "Universidad de Chile"}]}
-
         get.side_effect = [namedtuple("Request",
                                       ["status_code",
                                        "text"])(200,
-                                                json.dumps({"apellidoPaterno": "TESTLASTNAME",
-                                                            "apellidoMaterno": "TESTLASTNAME",
+                                                json.dumps({'data':{'getRowsPersona':{'status_code':200,'persona':[
+                                                            {"paterno": "TESTLASTNAME",
+                                                            "materno": "TESTLASTNAME",
+                                                            'pasaporte': [{'usuario':'avilio.perez'}],
                                                             "nombres": "TEST NAME",
-                                                            "nombreCompleto": "TEST NAME TESTLASTNAME TESTLASTNAME",
-                                                            "rut": "P123456"}))]
-        post.side_effect = [namedtuple("Request",
-                                       ["status_code",
-                                        "text"])(200,
-                                                 json.dumps(data)),
-                            namedtuple("Request",
-                                       ["status_code",
-                                        "text"])(200,
-                                                 json.dumps({"emails": [{"rut": "P123456",
-                                                                         "email": "test@test.test",
-                                                                         "codigoTipoEmail": "1",
-                                                                         "nombreTipoEmail": "PRINCIPAL"}]}))]
-
+                                                            'email': [{'email': 'test@test.test'}],
+                                                            "indiv_id": "P123456"}]}}}))]
         response = self.client.post(
             reverse('edxuserdata-data:data'), post_data)
         data = response.content.decode().split("\r\n")
@@ -599,48 +291,24 @@ class TestEdxUserDataStaff(TestCase):
             data[1],
             "P123456;avilio.perez;TESTLASTNAME;TESTLASTNAME;TEST NAME;test@test.test")
 
-    @patch('requests.post')
     @patch('requests.get')
-    def test_staff_post_CG(self, get, post):
+    def test_staff_post_CG(self, get):
         """
             Test normal process with CG
         """
         post_data = {
             'runs': 'CG00123456'
         }
-        data = {"cuentascorp": [{"cuentaCorp": "avilio.perez@ug.uchile.cl",
-                                 "tipoCuenta": "EMAIL",
-                                 "organismoDominio": "ug.uchile.cl"},
-                                {"cuentaCorp": "avilio.perez@uchile.cl",
-                                 "tipoCuenta": "EMAIL",
-                                 "organismoDominio": "uchile.cl"},
-                                {"cuentaCorp": "avilio.perez@u.uchile.cl",
-                                 "tipoCuenta": "EMAIL",
-                                 "organismoDominio": "u.uchile.cl"},
-                                {"cuentaCorp": "avilio.perez",
-                                 "tipoCuenta": "CUENTA PASAPORTE",
-                                 "organismoDominio": "Universidad de Chile"}]}
-
         get.side_effect = [namedtuple("Request",
                                       ["status_code",
                                        "text"])(200,
-                                                json.dumps({"apellidoPaterno": "TESTLASTNAME",
-                                                            "apellidoMaterno": "TESTLASTNAME",
+                                                json.dumps({'data':{'getRowsPersona':{'status_code':200,'persona':[
+                                                            {"paterno": "TESTLASTNAME",
+                                                            "materno": "TESTLASTNAME",
+                                                            'pasaporte': [{'usuario':'avilio.perez'}],
                                                             "nombres": "TEST NAME",
-                                                            "nombreCompleto": "TEST NAME TESTLASTNAME TESTLASTNAME",
-                                                            "rut": "CG00123456"}))]
-        post.side_effect = [namedtuple("Request",
-                                       ["status_code",
-                                        "text"])(200,
-                                                 json.dumps(data)),
-                            namedtuple("Request",
-                                       ["status_code",
-                                        "text"])(200,
-                                                 json.dumps({"emails": [{"rut": "CG00123456",
-                                                                         "email": "test@test.test",
-                                                                         "codigoTipoEmail": "1",
-                                                                         "nombreTipoEmail": "PRINCIPAL"}]}))]
-
+                                                            'email': [{'email': 'test@test.test'}],
+                                                            "indiv_id": "CG00123456"}]}}}))]
         response = self.client.post(
             reverse('edxuserdata-data:data'), post_data)
         data = response.content.decode().split("\r\n")

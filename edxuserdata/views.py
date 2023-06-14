@@ -109,57 +109,22 @@ class EdxUserDataStaff(View):
         """
         user_data = {}
         try:
-            username = EdxLoginStaff().get_username(run)
-            user_data['username'] = username
+            user_data = EdxLoginStaff().get_user_data_by_rut(run)            
         except Exception:
-            user_data['username'] = 'No Encontrado'
-        try:
-            fullname = EdxLoginStaff().get_user_data(user_data['username'])
-            user_data['lastname'] = fullname['apellidoPaterno']
-            user_data['lastname2'] = fullname['apellidoMaterno']
-            user_data['name'] = fullname['nombres']
-        except Exception:
-            fullname = {'rut': ''}
-            user_data['lastname'] = 'No Encontrado'
-            user_data['lastname2'] = 'No Encontrado'
-            user_data['name'] = 'No Encontrado'
-        try:
-            email = self.get_user_email(fullname['rut'])
-            if email == 'null':
-                user_data['email'] = 'No Encontrado'
-            else:
-                user_data['email'] = email
-        except Exception:
-            user_data['email'] = 'No Encontrado'
-
+            user_data = {
+                'rut': run,
+                'username': 'No Encontrado',
+                'nombres': 'No Encontrado',
+                'apellidoPaterno': 'No Encontrado',
+                'apellidoMaterno': 'No Encontrado',
+                'emails': ['No Encontrado']
+            }
         return user_data
-
-    def get_user_email(self, rut):
-        """
-        Get the user email
-        """
-        parameters = {
-            'rut': rut
-        }
-        result = requests.post(
-            settings.EDXLOGIN_USER_EMAIL,
-            data=json.dumps(parameters),
-            headers={
-                'content-type': 'application/json'})
-        if result.status_code == 200:
-            data = json.loads(result.text)
-            if 'emails' in data:
-                for mail in data['emails']:
-                    if mail['nombreTipoEmail'] == 'PRINCIPAL':
-                        if mail['email'] is not None:
-                            return mail['email']
-        return 'null'
 
     def export_data(self, lista_run):
         """
             Create the CSV
         """
-        data = []
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="users.csv"'
 
@@ -168,21 +133,16 @@ class EdxUserDataStaff(View):
             delimiter=';',
             dialect='excel',
             encoding='utf-8')
-        data.append([])
-        data[0].extend(['Run', 'Username', 'Apellido Paterno', 'Apellido Materno', 'Nombre', 'Email'])
-        i = 1
+        headers = ['Run', 'Username', 'Apellido Paterno', 'Apellido Materno', 'Nombre', 'Email']
+        writer.writerow(headers)
         for run in lista_run:
             while len(run) < 10 and 'P' != run[0] and 'CG' != run[0:2]:
                 run = "0" + run
-            data.append([])
             user_data = self.get_userdata(run)
-            data[i].extend([run,
-                            user_data['username'],
-                            user_data['lastname'],
-                            user_data['lastname2'],
-                            user_data['name'],
-                            user_data['email']])
-            i += 1
-        writer.writerows(data)
-
+            data = [run,
+                    user_data['username'],
+                    user_data['apellidoPaterno'],
+                    user_data['apellidoMaterno'],
+                    user_data['nombres']] + user_data['emails']
+            writer.writerow(data)
         return response
