@@ -1,28 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from mock import patch, Mock, MagicMock
+# Python Standard Libraries
 from collections import namedtuple
-from django.urls import reverse
+
+# Installed packages (via pip)
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase, Client
 from django.test import Client
-from django.conf import settings
-from django.contrib.auth.models import Permission, User
-from django.contrib.contenttypes.models import ContentType
-from urllib.parse import parse_qs
-from opaque_keys.edx.locator import CourseLocator
-from common.djangoapps.student.tests.factories import CourseEnrollmentAllowedFactory, UserFactory, CourseEnrollmentFactory
-from xmodule.modulestore.tests.factories import CourseFactory, ItemFactory
-from xmodule.modulestore import ModuleStoreEnum
-from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
-from uchileedxlogin.models import EdxLoginUser
-import re
-import json
-import urllib.parse
-# Create your tests here.
+from django.urls import reverse
+from mock import patch
 
+# Edx dependencies
+from common.djangoapps.student.tests.factories import UserFactory
+
+# Internal project dependencies
+from uchileedxlogin.models import EdxLoginUser
 
 class TestEdxUserDataStaff(TestCase):
-
     def setUp(self):
         with patch('common.djangoapps.student.models.cc.User.save'):
             content_type = ContentType.objects.get_for_model(EdxLoginUser)
@@ -90,6 +85,7 @@ class TestEdxUserDataStaff(TestCase):
         request = response.request
         self.assertEqual(response.status_code, 200)
         self.assertEqual(request['PATH_INFO'], '/edxuserdata/data/')
+
     @patch('requests.get')
     def test_staff_post(self, get):
         """
