@@ -1,6 +1,8 @@
 # Eol User Data
 
-![https://github.com/eol-uchile/edx-userdata/actions](https://github.com/eol-uchile/edx-userdata/workflows/Python%20application/badge.svg) ![Coverage Status](https://github.com/eol-uchile/edx-userdata/blob/master/coverage-badge.svg)
+![Coverage Status](/coverage-badge.svg)
+
+![https://github.com/eol-uchile/edx-userdata/actions](https://github.com/eol-uchile/edx-userdata/workflows/Python%20application/badge.svg) 
 
 Return CSV with user data from api
 
@@ -11,8 +13,13 @@ Return CSV with user data from api
 ## TESTS
 **Prepare tests:**
 
-    > cd .github/
-    > docker-compose run lms /openedx/requirements/edx-userdata/.github/test.sh
+- Install **act** following the instructions in [https://nektosact.com/installation/index.html](https://nektosact.com/installation/index.html)
+
+**Run tests:**
+- In a terminal at the root of the project
+    ```
+    act -W .github/workflows/pythonapp.yml
+    ```
 
 ## Notes
 
