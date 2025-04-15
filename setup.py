@@ -2,9 +2,9 @@ import setuptools
 
 setuptools.setup(
     name="edxuserdata",
-    version="0.0.1",
-    author="Luis Santana",
-    author_email="luis.santana@uchile.cl",
+    version="0.0.2",
+    author="Oficina EOL UChile",
+    author_email="eol-ing@uchile.cl",
     description="Return CSV with user data",
     long_description="Return CSV with user data",
     url="https://eol.uchile.cl",
