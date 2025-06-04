@@ -1,68 +1,57 @@
 #!/usr/bin/env python
 # -- coding: utf-8 --
 
-from django.conf import settings
-from django.core.exceptions import ValidationError
-from django.contrib.auth.models import User
-from django.contrib.sites.shortcuts import get_current_site
-from django.db import transaction
-from django.http import HttpResponseRedirect, HttpResponseForbidden, Http404
-from django.shortcuts import render
-from django.urls import reverse
-from django.views.generic.base import View
-from django.http import HttpResponse
-from urllib.parse import urlencode
-from itertools import cycle
-from uchileedxlogin.views import EdxLoginStaff
-
-import json
-import requests
-import uuid
-import unidecode
+# Python Standard Libraries
 import logging
-import sys
 import unicodecsv as csv
+
+# Installed packages (via pip)
+from django.http import Http404, HttpResponse
+from django.shortcuts import render
+from django.views.generic.base import View
+
+# Internal project dependencies
+from uchileedxlogin.views import EdxLoginStaff
 
 logger = logging.getLogger(__name__)
 
 
 class EdxUserDataStaff(View):
-
     def get(self, request):
         if self.validate_user(request):
-            context = {'runs': ''}
+            context = {'doc_ids': ''}
             return render(request, 'edxuserdata/staff.html', context)
         else:
             raise Http404()
 
     def post(self, request):
         """
-            Returns a CSV with the data of the entered users
+        Returns a CSV with the data for the requested users.
         """
         if self.validate_user(request):
-            lista_run = request.POST.get("runs", "").split('\n')
-            # limpieza de los run ingresados
-            lista_run = [run.upper() for run in lista_run]
-            lista_run = [run.replace("-", "") for run in lista_run]
-            lista_run = [run.replace(".", "") for run in lista_run]
-            lista_run = [run.strip() for run in lista_run]
-            lista_run = [run for run in lista_run if run]
+            doc_id_list = request.POST.get("doc_ids", "").split('\n')
+            # doc_id clean up.
+            doc_id_list = [doc_id.upper() for doc_id in doc_id_list]
+            doc_id_list = [doc_id.replace("-", "") for doc_id in doc_id_list]
+            doc_id_list = [doc_id.replace(".", "") for doc_id in doc_id_list]
+            doc_id_list = [doc_id.strip() for doc_id in doc_id_list]
+            doc_id_list = [doc_id for doc_id in doc_id_list if doc_id]
 
             context = {
-                'runs': request.POST.get('runs')
+                'doc_ids': request.POST.get('doc_ids')
             }
-            # validacion de datos
-            context = self.validate_data(request, lista_run, context)
-            # retorna si hubo al menos un error
+            # Data validation.
+            context = self.validate_data(doc_id_list, context)
+            # Returns if there is at least 1 error.
             if len(context) > 1:
                 return render(request, 'edxuserdata/staff.html', context)
-            return self.export_data(lista_run)
+            return self.export_data(doc_id_list)
         else:
             raise Http404()
 
     def validate_user(self, request):
         """
-            Validate if user have permission
+        Validate if user have permission.
         """
         access = False
         if not request.user.is_anonymous:
@@ -70,49 +59,49 @@ class EdxUserDataStaff(View):
                 access = True
         return access
 
-    def validate_data(self, request, lista_run, context):
+    def validate_data(self, doc_id_list, context):
         """
-            Validate if the entered data is valid
+        Validate if the data is valid.
         """
-        run_malos = ""
-        # validacion de los run
-        for run in lista_run:
+        invalid_doc_ids = ""
+        # doc_id validation.
+        for doc_id in doc_id_list:
             try:
-                if run[0] == 'P':
-                    if 5 > len(run[1:]) or len(run[1:]) > 20:
-                        run_malos += run + " - "
-                elif run[0:2] == 'CG':
-                    if len(run) != 10:
-                        run_malos += run + " - "
+                if doc_id[0] == 'P':
+                    if 5 > len(doc_id[1:]) or len(doc_id[1:]) > 20:
+                        invalid_doc_ids += doc_id + " - "
+                elif doc_id[0:2] == 'CG':
+                    if len(doc_id) != 10:
+                        invalid_doc_ids += doc_id + " - "
                 else:
-                    if not EdxLoginStaff().validarRut(run):
-                        run_malos += run + " - "
+                    if not EdxLoginStaff().validarRut(doc_id):
+                        invalid_doc_ids += doc_id + " - "
 
             except Exception:
-                run_malos += run + " - "
+                invalid_doc_ids += doc_id + " - "
 
-        run_malos = run_malos[:-3]
+        invalid_doc_ids = invalid_doc_ids[:-3]
 
-        # si existe run malo
-        if run_malos != "":
-            context['run_malos'] = run_malos
+        # If there is an invalid doc_id.
+        if invalid_doc_ids != "":
+            context['invalid_doc_ids'] = invalid_doc_ids
 
-        # si no se ingreso run
-        if not lista_run:
-            context['no_run'] = ''
+        # If there is no doc_id.
+        if not doc_id_list:
+            context['no_doc_id'] = ''
 
         return context
 
-    def get_userdata(self, run):
+    def get_userdata(self, doc_id):
         """
-            Get username, fullname and email of the 'run'
+        Get username, fullname and email of the 'doc_id'.
         """
         user_data = {}
         try:
-            user_data = EdxLoginStaff().get_user_data_by_rut(run)            
+            user_data = EdxLoginStaff().get_user_data_by_rut(doc_id)            
         except Exception:
             user_data = {
-                'rut': run,
+                'doc_id': doc_id,
                 'username': 'No Encontrado',
                 'nombres': 'No Encontrado',
                 'apellidoPaterno': 'No Encontrado',
@@ -121,9 +110,9 @@ class EdxUserDataStaff(View):
             }
         return user_data
 
-    def export_data(self, lista_run):
+    def export_data(self, doc_id_list):
         """
-            Create the CSV
+        Create the CSV.
         """
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="users.csv"'
@@ -133,13 +122,13 @@ class EdxUserDataStaff(View):
             delimiter=';',
             dialect='excel',
             encoding='utf-8')
-        headers = ['Run', 'Username', 'Apellido Paterno', 'Apellido Materno', 'Nombre', 'Email']
+        headers = ['Documento_id', 'Username', 'Apellido Paterno', 'Apellido Materno', 'Nombre', 'Email']
         writer.writerow(headers)
-        for run in lista_run:
-            while len(run) < 10 and 'P' != run[0] and 'CG' != run[0:2]:
-                run = "0" + run
-            user_data = self.get_userdata(run)
-            data = [run,
+        for doc_id in doc_id_list:
+            while len(doc_id) < 10 and 'P' != doc_id[0] and 'CG' != doc_id[0:2]:
+                doc_id = "0" + doc_id
+            user_data = self.get_userdata(doc_id)
+            data = [doc_id,
                     user_data['username'],
                     user_data['apellidoPaterno'],
                     user_data['apellidoMaterno'],

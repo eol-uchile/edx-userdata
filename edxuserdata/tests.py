@@ -7,7 +7,6 @@ from collections import namedtuple
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase, Client
-from django.test import Client
 from django.urls import reverse
 from mock import patch
 
@@ -92,7 +91,7 @@ class TestEdxUserDataStaff(TestCase):
             Test normal process
         """
         post_data = {
-            'runs': '10-8'
+            'doc_ids': '10-8'
         }
         get.side_effect = [namedtuple("Request",
                                       ["status_code",
@@ -107,7 +106,7 @@ class TestEdxUserDataStaff(TestCase):
         response = self.client.post(
             reverse('edxuserdata-data:data'), post_data)
         data = response.content.decode().split("\r\n")
-        self.assertEqual(data[0], "Run;Username;Apellido Paterno;Apellido Materno;Nombre;Email")
+        self.assertEqual(data[0], "Documento_id;Username;Apellido Paterno;Apellido Materno;Nombre;Email")
         self.assertEqual(
             data[1],
             "0000000108;avilio.perez;TESTLASTNAME;TESTLASTNAME;TEST NAME;test@test.test")
@@ -118,7 +117,7 @@ class TestEdxUserDataStaff(TestCase):
             Test if get data fail
         """
         post_data = {
-            'runs': '10-8'
+            'doc_ids': '10-8'
         }
         get.side_effect = [namedtuple("Request",
                                       ["status_code",
@@ -134,18 +133,18 @@ class TestEdxUserDataStaff(TestCase):
         response = self.client.post(
             reverse('edxuserdata-data:data'), post_data)
         data = response.content.decode().split("\r\n")
-        self.assertEqual(data[0], "Run;Username;Apellido Paterno;Apellido Materno;Nombre;Email")
+        self.assertEqual(data[0], "Documento_id;Username;Apellido Paterno;Apellido Materno;Nombre;Email")
         self.assertEqual(
             data[1],
             "0000000108;No Encontrado;No Encontrado;No Encontrado;No Encontrado;No Encontrado")
 
     @patch('requests.get')
-    def test_staff_post_multiple_run(self, get):
+    def test_staff_post_multiple_doc_id(self, get):
         """
             Test normal process with multiple 'r.u.n'
         """
         post_data = {
-            'runs': '10-8\n9472337K'
+            'doc_ids': '10-8\n9472337K'
         }
         get.side_effect = [namedtuple("Request",
                                       ["status_code",
@@ -172,7 +171,7 @@ class TestEdxUserDataStaff(TestCase):
             reverse('edxuserdata-data:data'), post_data)
         data = response.content.decode().split("\r\n")
 
-        self.assertEqual(data[0], "Run;Username;Apellido Paterno;Apellido Materno;Nombre;Email")
+        self.assertEqual(data[0], "Documento_id;Username;Apellido Paterno;Apellido Materno;Nombre;Email")
         self.assertEqual(
             data[1],
             "0000000108;avilio.perez;TESTLASTNAME;TESTLASTNAME;TEST NAME;test@test.test")
@@ -180,40 +179,40 @@ class TestEdxUserDataStaff(TestCase):
             data[2],
             "009472337K;test.test;TESTLASTNAME2;TESTLASTNAME2;TEST2 NAME2;test2@test.test")
 
-    def test_staff_post_no_run(self):
+    def test_staff_post_no_doc_id(self):
         """
-            Test post if runs is empty
+            Test post if doc_ids is empty
         """
         post_data = {
-            'runs': ''
+            'doc_ids': ''
         }
         response = self.client.post(
             reverse('edxuserdata-data:data'), post_data)
-        self.assertTrue("id=\"no_run\"" in response._container[0].decode())
+        self.assertTrue("id=\"no_doc_id\"" in response._container[0].decode())
 
-    def test_staff_post_wrong_run(self):
+    def test_staff_post_wrong_doc_id(self):
         post_data = {
-            'runs': '123456'
+            'doc_ids': '123456'
         }
         response = self.client.post(
             reverse('edxuserdata-data:data'), post_data)
-        self.assertTrue("id=\"run_malos\"" in response._container[0].decode())
+        self.assertTrue("id=\"invalid_doc_ids\"" in response._container[0].decode())
 
     def test_staff_post_wrong_passport(self):
         post_data = {
-            'runs': 'P3456'
+            'doc_ids': 'P3456'
         }
         response = self.client.post(
             reverse('edxuserdata-data:data'), post_data)
-        self.assertTrue("id=\"run_malos\"" in response._container[0].decode())
+        self.assertTrue("id=\"invalid_doc_ids\"" in response._container[0].decode())
 
     def test_staff_post_wrong_CG(self):
         post_data = {
-            'runs': 'CG123456'
+            'doc_ids': 'CG123456'
         }
         response = self.client.post(
             reverse('edxuserdata-data:data'), post_data)
-        self.assertTrue("id=\"run_malos\"" in response._container[0].decode())
+        self.assertTrue("id=\"invalid_doc_ids\"" in response._container[0].decode())
 
     @patch('requests.get')
     def test_staff_post_passport(self, get):
@@ -221,7 +220,7 @@ class TestEdxUserDataStaff(TestCase):
             Test normal process with passport
         """
         post_data = {
-            'runs': 'p123456'
+            'doc_ids': 'p123456'
         }
         get.side_effect = [namedtuple("Request",
                                       ["status_code",
@@ -236,7 +235,7 @@ class TestEdxUserDataStaff(TestCase):
         response = self.client.post(
             reverse('edxuserdata-data:data'), post_data)
         data = response.content.decode().split("\r\n")
-        self.assertEqual(data[0], "Run;Username;Apellido Paterno;Apellido Materno;Nombre;Email")
+        self.assertEqual(data[0], "Documento_id;Username;Apellido Paterno;Apellido Materno;Nombre;Email")
         self.assertEqual(
             data[1],
             "P123456;avilio.perez;TESTLASTNAME;TESTLASTNAME;TEST NAME;test@test.test")
@@ -247,7 +246,7 @@ class TestEdxUserDataStaff(TestCase):
             Test normal process with CG
         """
         post_data = {
-            'runs': 'CG00123456'
+            'doc_ids': 'CG00123456'
         }
         get.side_effect = [namedtuple("Request",
                                       ["status_code",
@@ -262,7 +261,7 @@ class TestEdxUserDataStaff(TestCase):
         response = self.client.post(
             reverse('edxuserdata-data:data'), post_data)
         data = response.content.decode().split("\r\n")
-        self.assertEqual(data[0], "Run;Username;Apellido Paterno;Apellido Materno;Nombre;Email")
+        self.assertEqual(data[0], "Documento_id;Username;Apellido Paterno;Apellido Materno;Nombre;Email")
         self.assertEqual(
             data[1],
             "CG00123456;avilio.perez;TESTLASTNAME;TESTLASTNAME;TEST NAME;test@test.test")
