@@ -11,14 +11,16 @@ from django.shortcuts import render
 from django.views.generic.base import View
 
 # Internal project dependencies
-from uchileedxlogin.views import EdxLoginStaff
+from uchileedxlogin.ph_query import get_user_data
+from uchileedxlogin.services.interface import check_permission_instructor_staff
+from uchileedxlogin.services.utils import validate_rut
 
 logger = logging.getLogger(__name__)
 
 
 class EdxUserDataStaff(View):
     def get(self, request):
-        if self.validate_user(request):
+        if check_permission_instructor_staff(request.user):
             context = {'doc_ids': ''}
             return render(request, 'edxuserdata/staff.html', context)
         else:
@@ -28,7 +30,7 @@ class EdxUserDataStaff(View):
         """
         Returns a CSV with the data for the requested users.
         """
-        if self.validate_user(request):
+        if check_permission_instructor_staff(request.user):
             doc_id_list = request.POST.get("doc_ids", "").split('\n')
             # doc_id clean up.
             doc_id_list = [doc_id.upper() for doc_id in doc_id_list]
@@ -49,16 +51,6 @@ class EdxUserDataStaff(View):
         else:
             raise Http404()
 
-    def validate_user(self, request):
-        """
-        Validate if user have permission.
-        """
-        access = False
-        if not request.user.is_anonymous:
-            if request.user.has_perm('uchileedxlogin.uchile_instructor_staff'):
-                access = True
-        return access
-
     def validate_data(self, doc_id_list, context):
         """
         Validate if the data is valid.
@@ -74,7 +66,7 @@ class EdxUserDataStaff(View):
                     if len(doc_id) != 10:
                         invalid_doc_ids += doc_id + " - "
                 else:
-                    if not EdxLoginStaff().validarRut(doc_id):
+                    if not validate_rut(doc_id):
                         invalid_doc_ids += doc_id + " - "
 
             except Exception:
@@ -98,7 +90,7 @@ class EdxUserDataStaff(View):
         """
         user_data = {}
         try:
-            user_data = EdxLoginStaff().get_user_data_by_rut(doc_id)            
+            user_data = get_user_data(doc_id, 'indiv_id')
         except Exception:
             user_data = {
                 'doc_id': doc_id,
