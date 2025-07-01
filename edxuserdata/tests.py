@@ -4,8 +4,6 @@
 from collections import namedtuple
 
 # Installed packages (via pip)
-from django.contrib.auth.models import Permission
-from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase, Client
 from django.urls import reverse
 from mock import patch
@@ -13,17 +11,9 @@ from mock import patch
 # Edx dependencies
 from common.djangoapps.student.tests.factories import UserFactory
 
-# Internal project dependencies
-from uchileedxlogin.models import EdxLoginUser
-
 class TestEdxUserDataStaff(TestCase):
     def setUp(self):
         with patch('common.djangoapps.student.models.cc.User.save'):
-            content_type = ContentType.objects.get_for_model(EdxLoginUser)
-            permission = Permission.objects.get(
-                codename='uchile_instructor_staff',
-                content_type=content_type,
-            )
             # staff user
             self.client = Client()
             user = UserFactory(
@@ -31,7 +21,6 @@ class TestEdxUserDataStaff(TestCase):
                 password='12345',
                 email='student2@edx.org',
                 is_staff=True)
-            user.user_permissions.add(permission)
             self.client.login(username='testuser3', password='12345')
             
             # user with permission
@@ -40,7 +29,6 @@ class TestEdxUserDataStaff(TestCase):
                 username='testuser4',
                 password='12345',
                 email='student4@edx.org')
-            user_wper.user_permissions.add(permission)
             self.client_user.login(username='testuser4', password='12345')
 
             # user without permission
@@ -51,45 +39,55 @@ class TestEdxUserDataStaff(TestCase):
                 email='student5@edx.org')
             self.client_no_per.login(username='testuser5', password='12345')
 
-    def test_staff_get(self):
+    @patch('edxuserdata.views.check_permission_instructor_staff')
+    def test_staff_get(self, mock_permission_check):
+        mock_permission_check.return_value = True
         response = self.client.get(reverse('edxuserdata-data:data'))
         request = response.request
         self.assertEqual(response.status_code, 200)
         self.assertEqual(request['PATH_INFO'], '/edxuserdata/data/')
 
-    def test_staff_get_user_anonymous(self):
+    @patch('edxuserdata.views.check_permission_instructor_staff')
+    def test_staff_get_user_anonymous(self, mock_permission_check):
         """
             Test if the user is anonymous
         """
+        mock_permission_check.return_value = False
         self.client_anonymous = Client()
         response = self.client_anonymous.get(reverse('edxuserdata-data:data'))
         request = response.request
         self.assertEqual(response.status_code, 404)
         self.assertEqual(request['PATH_INFO'], '/edxuserdata/data/')
     
-    def test_staff_get_user_without_permission(self):
+    @patch('edxuserdata.views.check_permission_instructor_staff')
+    def test_staff_get_user_without_permission(self, mock_permission_check):
         """
             Test if the user does not have permission
         """
+        mock_permission_check.return_value = False
         response = self.client_no_per.get(reverse('edxuserdata-data:data'))
         request = response.request
         self.assertEqual(response.status_code, 404)
         self.assertEqual(request['PATH_INFO'], '/edxuserdata/data/')
 
-    def test_staff_get_user_with_permission(self):       
+    @patch('edxuserdata.views.check_permission_instructor_staff')
+    def test_staff_get_user_with_permission(self, mock_permission_check):       
         """
             Test if the user have permission
         """ 
+        mock_permission_check.return_value = True
         response = self.client_user.get(reverse('edxuserdata-data:data'))
         request = response.request
         self.assertEqual(response.status_code, 200)
         self.assertEqual(request['PATH_INFO'], '/edxuserdata/data/')
 
+    @patch('edxuserdata.views.check_permission_instructor_staff')
     @patch('requests.get')
-    def test_staff_post(self, get):
+    def test_staff_post(self, get, mock_permission_check):
         """
             Test normal process
         """
+        mock_permission_check.return_value = True
         post_data = {
             'doc_ids': '10-8'
         }
@@ -111,11 +109,13 @@ class TestEdxUserDataStaff(TestCase):
             data[1],
             "0000000108;avilio.perez;TESTLASTNAME;TESTLASTNAME;TEST NAME;test@test.test")
 
+    @patch('edxuserdata.views.check_permission_instructor_staff')
     @patch('requests.get')
-    def test_staff_post_fail_data(self, get):
+    def test_staff_post_fail_data(self, get, mock_permission_check):
         """
             Test if get data fail
         """
+        mock_permission_check.return_value = True
         post_data = {
             'doc_ids': '10-8'
         }
@@ -138,11 +138,13 @@ class TestEdxUserDataStaff(TestCase):
             data[1],
             "0000000108;No Encontrado;No Encontrado;No Encontrado;No Encontrado;No Encontrado")
 
+    @patch('edxuserdata.views.check_permission_instructor_staff')
     @patch('requests.get')
-    def test_staff_post_multiple_doc_id(self, get):
+    def test_staff_post_multiple_doc_id(self, get, mock_permission_check):
         """
             Test normal process with multiple 'r.u.n'
         """
+        mock_permission_check.return_value = True
         post_data = {
             'doc_ids': '10-8\n9472337K'
         }
@@ -179,10 +181,12 @@ class TestEdxUserDataStaff(TestCase):
             data[2],
             "009472337K;test.test;TESTLASTNAME2;TESTLASTNAME2;TEST2 NAME2;test2@test.test")
 
-    def test_staff_post_no_doc_id(self):
+    @patch('edxuserdata.views.check_permission_instructor_staff')
+    def test_staff_post_no_doc_id(self, mock_permission_check):
         """
             Test post if doc_ids is empty
         """
+        mock_permission_check.return_value = True
         post_data = {
             'doc_ids': ''
         }
@@ -190,7 +194,9 @@ class TestEdxUserDataStaff(TestCase):
             reverse('edxuserdata-data:data'), post_data)
         self.assertTrue("id=\"no_doc_id\"" in response._container[0].decode())
 
-    def test_staff_post_wrong_doc_id(self):
+    @patch('edxuserdata.views.check_permission_instructor_staff')
+    def test_staff_post_wrong_doc_id(self, mock_permission_check):
+        mock_permission_check.return_value = True
         post_data = {
             'doc_ids': '123456'
         }
@@ -198,7 +204,9 @@ class TestEdxUserDataStaff(TestCase):
             reverse('edxuserdata-data:data'), post_data)
         self.assertTrue("id=\"invalid_doc_ids\"" in response._container[0].decode())
 
-    def test_staff_post_wrong_passport(self):
+    @patch('edxuserdata.views.check_permission_instructor_staff')
+    def test_staff_post_wrong_passport(self, mock_permission_check):
+        mock_permission_check.return_value = True
         post_data = {
             'doc_ids': 'P3456'
         }
@@ -206,7 +214,9 @@ class TestEdxUserDataStaff(TestCase):
             reverse('edxuserdata-data:data'), post_data)
         self.assertTrue("id=\"invalid_doc_ids\"" in response._container[0].decode())
 
-    def test_staff_post_wrong_CG(self):
+    @patch('edxuserdata.views.check_permission_instructor_staff')
+    def test_staff_post_wrong_CG(self, mock_permission_check):
+        mock_permission_check.return_value = True
         post_data = {
             'doc_ids': 'CG123456'
         }
@@ -214,11 +224,13 @@ class TestEdxUserDataStaff(TestCase):
             reverse('edxuserdata-data:data'), post_data)
         self.assertTrue("id=\"invalid_doc_ids\"" in response._container[0].decode())
 
+    @patch('edxuserdata.views.check_permission_instructor_staff')
     @patch('requests.get')
-    def test_staff_post_passport(self, get):
+    def test_staff_post_passport(self, get, mock_permission_check):
         """
             Test normal process with passport
         """
+        mock_permission_check.return_value = True
         post_data = {
             'doc_ids': 'p123456'
         }
@@ -240,11 +252,13 @@ class TestEdxUserDataStaff(TestCase):
             data[1],
             "P123456;avilio.perez;TESTLASTNAME;TESTLASTNAME;TEST NAME;test@test.test")
 
+    @patch('edxuserdata.views.check_permission_instructor_staff')
     @patch('requests.get')
-    def test_staff_post_CG(self, get):
+    def test_staff_post_CG(self, get, mock_permission_check):
         """
             Test normal process with CG
         """
+        mock_permission_check.return_value = True
         post_data = {
             'doc_ids': 'CG00123456'
         }
